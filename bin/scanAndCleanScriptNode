@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# scan Maya Ascii files for malware "dato" to clean scriptNode command
+#
+# Usage scanScriptNode path
+#
+#   
+# find where the executable is located, assume other scripts in same place
+
+# were we passed any parameters
+if [ $# -gt 0 ]; then
+  # check to see that the directory exists
+  if [ ! -d "$1" ]; then
+    echo "directory path to scan doesn't exist"
+    exit 2
+  fi
+else
+  echo "Usage: scanAndCleanScriptNode path"
+  exit 1
+fi
+
+
+if [[ "$0" == /* ]]; then
+        me="$0"
+else
+        me=$(pwd)/$0
+fi
+
+#
+#  If it's a link, find the actual file.
+#  Follow the link(s) until an acutal file is found
+
+while [ -h "$me" ]; do
+    linkdirname=$(dirname "$me")
+    me=$(ls "$lsFlags" "$me" | tr ' ' '\012' | tail -n 1)
+    if [[ ! "$me" == /* ]]; then
+        me="$linkdirname/$me"
+    fi
+done
+
+#
+#  Binary should be in same directory.  Verify that.
+#
+bindir=$(dirname "$me")
+if [ -d "$bindir" ]; then
+            bindir=$(cd "$bindir"; echo "$PWD")
+fi
+
+# now go thru the list of found ma scene file to process
+find "$1" -name \*.ma -exec ${bindir}/cleanScriptNode '{}' \;
+
